@@ -3,155 +3,274 @@
  * 暴露 initGeetest 进行验证码的初始化
  * 一般不需要用户进行修改
  */
-"use strict";
-var crypto = require('crypto'),
-    request = require('request'),
-    pkg = require("./package.json");
+(function (global, factory) {
+    "use strict";
+    if (typeof module === "object" && typeof module.exports === "object") {
+        // CommonJS
+        module.exports = global.document ?
+            factory(global, true) :
+            function (w) {
+                if (!w.document) {
+                    throw new Error("Geetest requires a window with a document");
+                }
+                return factory(w);
+            };
+    } else {
+        factory(global);
+    }
+})(typeof window !== "undefined" ? window : this, function (window, noGlobal) {
+    "use strict";
+    if (typeof window === 'undefined') {
+        throw new Error('Geetest requires browser environment');
+    }
+    var document = window.document;
+    var Math = window.Math;
+    var head = document.getElementsByTagName("head")[0];
 
-var md5 = function (str) {
-    return crypto.createHash('md5').update(String(str)).digest('hex');
-};
-var randint = function (from, to) {
-    // range: from ~ to
-    return Math.floor(Math.random() * (to - from + 1) + from);
-};
-function Geetest(config) {
-    if (typeof config.geetest_id !== 'string') {
-        throw new Error('Geetest ID Required');
-    }
-    if (typeof config.geetest_key !== 'string') {
-        throw new Error("Geetest KEY Required");
-    }
-    if (typeof config.protocol === 'string') {
-        this.PROTOCOL = config.protocol;
-    }
-    if (typeof config.api_server === 'string') {
-        this.API_SERVER = config.api_server;
-    }
-    if (typeof config.timeout === 'number') {
-        this.TIMEOUT = config.timeout;
+    function _Object(obj) {
+        this._obj = obj;
     }
 
-    this.geetest_id = config.geetest_id;
-    this.geetest_key = config.geetest_key;
-}
-Geetest.prototype = {
-    PROTOCOL: 'http://',
-    API_SERVER: 'api.geetest.com',
-    VALIDATE_PATH: '/validate.php',
-    REGISTER_PATH: '/register.php',
-    TIMEOUT: 2000,
-    NEW_CAPTCHA: true,
-    JSON_FORMAT: 1,
-    register: function (data, callback) {
-        var that = this;
-        return new Promise(function (resolve, reject) {
-            that._register(data, function (err, data) {
-                if (typeof callback === 'function') {
-                    callback(err, data);
+    _Object.prototype = {
+        _each: function (process) {
+            var _obj = this._obj;
+            for (var k in _obj) {
+                if (_obj.hasOwnProperty(k)) {
+                    process(k, _obj[k]);
                 }
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(data);
-                }
-            });
-        });
-    },
-    _register: function (data, callback) {
-        data = data || {};
-        var that = this;
-        request({
-            url: this.PROTOCOL + this.API_SERVER + this.REGISTER_PATH,
-            method: 'GET',
-            timeout: this.TIMEOUT,
-            json: true,
-            qs: {
-                gt: this.geetest_id,
-                json_format: this.JSON_FORMAT,
-                sdk: 'Node_' + pkg.version,
-                client_type: data.client_type || 'unknown',
-                ip_address: data.ip_address || 'unknown'
             }
-        }, function (err, res, data) {
-            var challenge;
-            if (err || !data || !data.challenge) {
-                // failback
-                challenge = that._make_challenge();
-                callback(null, {
-                    success: 0,
-                    challenge: challenge,
-                    gt: that.geetest_id,
-                    new_captcha: that.NEW_CAPTCHA
-                });
-            } else {
-                challenge = md5(data.challenge + that.geetest_key);
-                callback(null, {
-                    success: 1,
-                    challenge: challenge,
-                    gt: that.geetest_id,
-                    new_captcha: that.NEW_CAPTCHA
-                });
-            }
-        });
-    },
-    validate: function (failback, result, callback) {
-        var that = this;
-        return new Promise(function (resolve, reject) {
-            that._validate(failback, result, function (err, data) {
-                if (typeof callback === 'function') {
-                    callback(err, data);
-                }
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(data);
-                }
-            });
-        })
-    },
-    _validate: function (failback, result, callback) {
-        var challenge = result.challenge || result.geetest_challenge;
-        var validate = result.validate || result.geetest_validate;
-        var seccode = result.seccode || result.geetest_seccode;
-        if (failback) {
-            if (md5(challenge) === validate) {
-                callback(null, true);
-            } else {
-                callback(null, false);
-            }
-        } else {
-            var hash = this.geetest_key + 'geetest' + challenge;
-            if (validate === md5(hash)) {
-                request({
-                    url: this.PROTOCOL + this.API_SERVER + this.VALIDATE_PATH,
-                    method: 'POST',
-                    timeout: this.TIMEOUT,
-                    json: true,
-                    form: {
-                        gt: this.geetest_id,
-                        seccode: seccode,
-                        json_format: this.JSON_FORMAT
-                    }
-                }, function (err, res, data) {
-                    if (err || !data || !data.seccode) {
-                        callback(err);
-                    } else {
-                        callback(null, data.seccode === md5(seccode));
-                    }
-                });
-            } else {
-                callback(null, false);
-            }
+            return this;
         }
-    },
-    _make_challenge: function () {
-        var rnd1 = randint(0, 90);
-        var rnd2 = randint(0, 90);
-        var md5_str1 = md5(rnd1);
-        var md5_str2 = md5(rnd2);
-        return md5_str1 + md5_str2.slice(0, 2);
+    };
+    function Config(config) {
+        var self = this;
+        new _Object(config)._each(function (key, value) {
+            self[key] = value;
+        });
     }
-};
 
-module.exports = Geetest;
+    Config.prototype = {
+        api_server: 'api.geetest.com',
+        protocol: 'http://',
+        type_path: '/gettype.php',
+        fallback_config: {
+            slide: {
+                static_servers: ["static.geetest.com", "dn-staticdown.qbox.me"],
+                type: 'slide',
+                slide: '/static/js/geetest.0.0.0.js'
+            },
+            fullpage: {
+                static_servers: ["static.geetest.com", "dn-staticdown.qbox.me"],
+                type: 'fullpage',
+                fullpage: '/static/js/fullpage.0.0.0.js'
+            }
+        },
+        _get_fallback_config: function () {
+            var self = this;
+            if (isString(self.type)) {
+                return self.fallback_config[self.type];
+            } else if (self.new_captcha) {
+                return self.fallback_config.fullpage;
+            } else {
+                return self.fallback_config.slide;
+            }
+        },
+        _extend: function (obj) {
+            var self = this;
+            new _Object(obj)._each(function (key, value) {
+                self[key] = value;
+            })
+        }
+    };
+    var isNumber = function (value) {
+        return (typeof value === 'number');
+    };
+    var isString = function (value) {
+        return (typeof value === 'string');
+    };
+    var isBoolean = function (value) {
+        return (typeof value === 'boolean');
+    };
+    var isObject = function (value) {
+        return (typeof value === 'object' && value !== null);
+    };
+    var isFunction = function (value) {
+        return (typeof value === 'function');
+    };
+    var callbacks = {};
+    var status = {};
+    var random = function () {
+        return parseInt(Math.random() * 10000) + (new Date()).valueOf();
+    };
+    var loadScript = function (url, cb) {
+        var script = document.createElement("script");
+        script.charset = "UTF-8";
+        script.async = true;
+        script.onerror = function () {
+            cb(true);
+        };
+        var loaded = false;
+        script.onload = script.onreadystatechange = function () {
+            if (!loaded &&
+                (!script.readyState ||
+                "loaded" === script.readyState ||
+                "complete" === script.readyState)) {
+
+                loaded = true;
+                setTimeout(function () {
+                    cb(false);
+                }, 0);
+            }
+        };
+        script.src = url;
+        head.appendChild(script);
+    };
+    var normalizeDomain = function (domain) {
+        return domain.replace(/^https?:\/\/|\/$/g, '');
+    };
+    var normalizePath = function (path) {
+        path = path.replace(/\/+/g, '/');
+        if (path.indexOf('/') !== 0) {
+            path = '/' + path;
+        }
+        return path;
+    };
+    var normalizeQuery = function (query) {
+        if (!query) {
+            return '';
+        }
+        var q = '?';
+        new _Object(query)._each(function (key, value) {
+            if (isString(value) || isNumber(value) || isBoolean(value)) {
+                q = q + encodeURIComponent(key) + '=' + encodeURIComponent(value) + '&';
+            }
+        });
+        if (q === '?') {
+            q = '';
+        }
+        return q.replace(/&$/, '');
+    };
+    var makeURL = function (protocol, domain, path, query) {
+        domain = normalizeDomain(domain);
+
+        var url = normalizePath(path) + normalizeQuery(query);
+        if (domain) {
+            url = protocol + domain + url;
+        }
+
+        return url;
+    };
+    var load = function (protocol, domains, path, query, cb) {
+        var tryRequest = function (at) {
+
+            var url = makeURL(protocol, domains[at], path, query);
+            loadScript(url, function (err) {
+                if (err) {
+                    if (at >= domains.length - 1) {
+                        cb(true);
+                    } else {
+                        tryRequest(at + 1);
+                    }
+                } else {
+                    cb(false);
+                }
+            });
+        };
+        tryRequest(0);
+    };
+    var jsonp = function (domains, path, config, callback) {
+        if (isObject(config.getLib)) {
+            config._extend(config.getLib);
+            callback(config);
+            return;
+        }
+        if (config.offline) {
+            callback(config._get_fallback_config());
+            return;
+        }
+        var cb = "geetest_" + random();
+        window[cb] = function (data) {
+            if (data.status === 'success') {
+                callback(data.data);
+            } else if (!data.status) {
+                callback(data);
+            } else {
+                callback(config._get_fallback_config());
+            }
+            window[cb] = undefined;
+            try {
+                delete window[cb];
+            } catch (e) {
+            }
+        };
+        load(config.protocol, domains, path, {
+            gt: config.gt,
+            callback: cb
+        }, function (err) {
+            if (err) {
+                callback(config._get_fallback_config());
+            }
+        });
+    };
+    var throwError = function (errorType, config) {
+        var errors = {
+            networkError: '网络错误'
+        };
+        if (typeof config.onError === 'function') {
+            config.onError(errors[errorType]);
+        } else {
+            throw new Error(errors[errorType]);
+        }
+    };
+    var detect = function () {
+        return !!window.Geetest;
+    };
+    if (detect()) {
+        status.slide = "loaded";
+    }
+    var initGeetest = function (userConfig, callback) {
+        var config = new Config(userConfig);
+        if (userConfig.https) {
+            config.protocol = 'https://';
+        } else if (!userConfig.protocol) {
+            config.protocol = window.location.protocol + '//';
+        }
+        jsonp([config.api_server || config.apiserver], config.type_path, config, function (newConfig) {
+            var type = newConfig.type;
+            var init = function () {
+                config._extend(newConfig);
+                callback(new window.Geetest(config));
+            };
+            callbacks[type] = callbacks[type] || [];
+            var s = status[type] || 'init';
+            if (s === 'init') {
+                status[type] = 'loading';
+                callbacks[type].push(init);
+                load(config.protocol, newConfig.static_servers || newConfig.domains, newConfig[type] || newConfig.path, null, function (err) {
+                    if (err) {
+                        status[type] = 'fail';
+                        throwError('networkError', config);
+                    } else {
+                        status[type] = 'loaded';
+                        var cbs = callbacks[type];
+                        for (var i = 0, len = cbs.length; i < len; i = i + 1) {
+                            var cb = cbs[i];
+                            if (isFunction(cb)) {
+                                cb();
+                            }
+                        }
+                        callbacks[type] = [];
+                    }
+                });
+            } else if (s === "loaded") {
+                init();
+            } else if (s === "fail") {
+                throwError('networkError', config);
+            } else if (s === "loading") {
+                callbacks[type].push(init);
+            }
+        });
+    };
+    window.initGeetest = initGeetest;
+    return initGeetest;
+});

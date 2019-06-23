@@ -15,7 +15,7 @@
             <el-input v-model="form.code" placeholder="验证码"></el-input>
           </el-col>
           <el-col :offset="1" :span="9">
-            <el-button>获取验证码</el-button>
+            <!-- <el-button>获取验证码</el-button> -->
             <el-button @click="handleSendCode">获取验证码</el-button>
           </el-col>
         </el-form-item>
