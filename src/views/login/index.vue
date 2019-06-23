@@ -51,7 +51,25 @@ export default {
         method: 'GET',
         url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${mobile}`
       }).then(res => {
-        console.log(res.data)
+        const { data } = res.data
+        window.initGeetest({
+          // 以下配置参数来自服务端 SDK
+          gt: data.gt,
+          challenge: data.challenge,
+          offline: !data.success,
+          new_captcha: true,
+          product: 'bind'
+        }, function(captchaObj) {
+          captchaObj.onReady(function() {
+            // 验证码ready之后才能调用verify方法显示验证码
+            captchaObj.verify() // 弹出验证码内容框
+          }).onSuccess(function() {
+            // your code
+            console.log(captchaObj.getValidate())
+          }).onError(function() {
+            // your code
+          })
+        })
       })
     }
   }
