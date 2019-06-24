@@ -28,7 +28,7 @@
           </el-col>
           <el-col :offset="1" :span="9">
             <el-button
-              @click="handleSendCode"
+              @click="codeCountDown"
               :disabled="!!codeTimer"
               >{{ codeTimer ? `剩余${codeTimeSeconds}秒` : '获取验证码' }}</el-button>
           </el-col>
@@ -47,7 +47,7 @@
 <script>
 import axios from 'axios'
 import '@/vendor/gt' // 引入极验 JavaScript SDK 文件，通过 window.initGeetest 使用
-const initCodeTimeSeconds = 10
+const initCodeTimeSeconds = 60
 
 export default {
   name: 'AppLogin',
