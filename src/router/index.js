@@ -16,7 +16,7 @@ export default new Router({
     {
       // layout 显示到 App 根组件的路由出口
       // name: 'layout', // 使用 JavaScript 命名路由导航不会渲染默认子路由
-      name: 'layout',
+      // name: 'layout',
       path: '/',
       component: () => import('@/views/layout'),
       // 嵌套路由：https://router.vuejs.org/zh/guide/essentials/nested-routes.html
