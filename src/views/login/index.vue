@@ -28,7 +28,7 @@
           </el-col>
           <el-col :offset="1" :span="9">
             <el-button
-              @click="codeCountDown"
+              @click="handleSendCode"
               :disabled="!!codeTimer"
               >{{ codeTimer ? `剩余${codeTimeSeconds}秒` : '获取验证码' }}</el-button>
           </el-col>
@@ -96,7 +96,8 @@ export default {
         data: this.form
       })
         .then(res => { // >=200 && < 400 的状态码会进入 then 成功
-          console.log(res.data)
+          const userInfo = res.data.data
+          window.localStorage.setItem('user_info', JSON.stringify(userInfo))
           this.$message({
             message: '登录成功',
             type: 'success'
