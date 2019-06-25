@@ -1,8 +1,4 @@
 <template>
-    <!-- <div class="layout-wrap">
-        <AppAside/>
-        <AppHeader/>
-   </div> -->
     <el-container>
       <el-aside width="200px">
         <!-- 侧边栏 -->
