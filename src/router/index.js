@@ -13,7 +13,7 @@ const router = new Router({
     //   // 在整个项目中，模块路径中的 @ 表示的是 src 目录
     //   // 无论你当前模块在哪里，@ 都可以直接定位到 src
     //   // 加载一个目录可以默认加载它的 index.js、index.vue、index.json。。。
-    //   component: () => import('@/views/home')
+    //   component: () => import('@/views/home/index.vue')
     // },
     {
       // layout 显示到 App 根组件的路由出口
@@ -23,17 +23,16 @@ const router = new Router({
       component: () => import('@/views/layout'),
       // 嵌套路由：https://router.vuejs.org/zh/guide/essentials/nested-routes.html
       // 所有 children 路由都显示到父路由的 router-view 中
-      children: [
-        {
-          name: 'home',
-          path: '', // 父路由的默认内容
-          component: () => import('@/views/home')
-        },
-        {
-          name: 'publish',
-          path: '/publish',
-          component: () => import('@/views/publish')
-        }
+      children: [{
+        name: 'home',
+        path: '', // 父路由的默认内容
+        component: () => import('@/views/home')
+      },
+      {
+        name: 'publish',
+        path: '/publish',
+        component: () => import('@/views/publish')
+      }
       ]
     },
     {
@@ -53,6 +52,7 @@ const router = new Router({
 router.beforeEach((to, from, next) => {
   // 路由导航前，开启进度条
   nprogress.start()
+
   // const userInfo = window.localStorage.getItem('user_info')
   const userInfo = getUser()
   if (to.path !== '/login') {
@@ -63,24 +63,29 @@ router.beforeEach((to, from, next) => {
       // next('/login')
       // next({ path: '/login' })
     } else {
-      // 登录页面
-      //   没有登录，允许通过
-      if (!userInfo) {
-        next()
-      } else {
-        //   登录了，不允许通过
-        // next(false) // 中断当前导航
-        // next()
-        // next({ name: 'home' })
-        // window.location.href = '/#/'
-        next({ name: 'home' })
-        window.location.reload()
-      }
+      //   登录了，允许通过
+      next()
+    }
+  } else {
+    // 登录页面
+    //   没有登录，允许通过
+    if (!userInfo) {
+      next()
+    } else {
+      //   登录了，不允许通过
+      // next(false) // 中断当前导航
+      // next()
+      // next({ name: 'home' })
+      // window.location.href = '/#/'
+      next({ name: 'home' })
+      window.location.reload()
     }
   }
 })
+
 router.afterEach((to, from) => {
   // 路由导航完成，结束进度条
   nprogress.done()
 })
+
 export default router
