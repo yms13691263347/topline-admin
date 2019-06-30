@@ -5,10 +5,45 @@
     </div>
     <div class="action">
       <el-radio-group v-model="active">
-        <el-radio-button label="全部"></el-radio-button>
-        <el-radio-button label="收藏"></el-radio-button>
+        <!--
+          click、dblclick 是原生的 DOM 事件
+          el-xxx 是什么？这是组件标签
+          老师？el-button 怎么就有呢？因为这个组件将内部的点击事件做了对外发布 $emit
+            使用 @click 给 el-button 注册点击事件，只是让你看起来像是在注册原生事件，实质是它在内部将原生DOM的点击事件做了对外发布 $emit('click', 事件参数)
+          如果想要给一个组件注册一个原生事件，@原生事件.native
+         -->
+        <el-radio-button label="全部" @click.native="loadImages(false)"></el-radio-button>
+        <el-radio-button label="收藏" @click.native="loadImages(true)"></el-radio-button>
       </el-radio-group>
-      <el-button type="primary">上传图片</el-button>
+      <!--
+        这里我们可以直接使用 Upload 上传组件进行图片上传
+        Upload 组件支持自动请求，不用我们自己写代码，只需要配置一下请求接口
+        如果要使用它默认的请求能力，就无法使用我们在 axios 中做的那些配置了，例如 baseURL、请求拦截器。。。
+          1. action 请求地址
+          2. headers 请求头
+          3. name  字段名称
+        一：:on-success="loadImages"
+          将 loadImages 配置为 on-success 的成功调用函数
+          那么当上传成功的时候，Upload 组件就会调用 loadImage(response, file, fileList)
+          我们自己写的 loadImages 函数，期望参数是一个布尔值
+        二：:on-success="loadImages(false)"
+          {{ loadImages(false) }}
+          不行，因为属性绑定中会直接调用这个函数
+        三：定义一个额外的函数，在这个函数中我们手动调用我们自己的 loadImages(false)
+          :on-success="handleUploadSuccess"
+        四：我们可以在模板中使用箭头函数
+          注意：模板中直接定义的箭头函数中使用实例成员需要加 this
+       -->
+       <el-upload
+        action="http://ttapi.research.itcast.cn/mp/v1_0/user/images"
+        :headers="{ Authorization: `Bearer ${$store.state.user.token}` }"
+        name="image"
+        :on-success="() => { loadImages(false) }"
+        :show-file-list="false"
+        >
+        <el-button size="small" type="primary">点击上传</el-button>
+        <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+      </el-upload>
     </div>
 
     <!-- 图片列表 -->
@@ -111,6 +146,10 @@ export default {
       } catch (err) {
         this.$message.error('删除失败')
       }
+    },
+    handleUploadSuccess() {
+      // 上传成功，重新加载所有图片列表
+      this.loadImages(false)
     }
   }
 }
