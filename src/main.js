@@ -6,6 +6,7 @@ import 'nprogress/nprogress.css'
 import axios from 'axios'
 import { getUser, removeUser } from '@/utils/auth'
 import JSONbig from 'json-bigint'
+import store from './store'
 
 // 先找文件，没有就找目录
 // 如果找到目录，优先加载目录中的 index
@@ -108,5 +109,6 @@ Vue.config.productionTip = false
 
 new Vue({
   router,
+  store, // 将 store 配置到 Vue 根实例中，然后所有组件就可以通过 this.$store 来访问容器中的数据了
   render: h => h(App)
 }).$mount('#app')

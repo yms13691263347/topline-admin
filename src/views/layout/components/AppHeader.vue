@@ -4,8 +4,8 @@
     <el-col :span="5" :offset="5">
         <el-dropdown trigger="click" @command="handleCommand">
         <span class="el-dropdown-link">
-          <img class="el-dropdown-link">
-          {{ userInfo.name }}<i class="el-icon-arrow-down el-icon--right"></i>
+          <img width="30" :src="$store.state.user.photo">
+          {{ $store.state.user.name }}<i class="el-icon-arrow-down el-icon--right"></i>
         </span>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item command="a">用户设置</el-dropdown-item>
@@ -20,19 +20,19 @@
   </el-row>
 </template>
 <script>
-import { removeUser, getUser } from '@/utils/auth'
+import { removeUser } from '@/utils/auth'
 export default {
   name: 'AppHeader',
   data() {
     return {
-      userInfo: {}
+      // userInfo: {}
     }
   },
   created() {
     // this.userInfo = JSON.parse(window.localStorage.getItem('user_info')) || {
     //   name: '123456798',
     //   photo: 'http://toutiao.meiduo.site/Fkj6tQi3xJwVXi1u2swCElotfdCi'
-    this.userInfo = getUser()
+    // this.userInfo = getUser()
   },
   methods: {
     handleLogout() {
